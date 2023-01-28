@@ -69,6 +69,11 @@ int interpret(Interpreter *inter, char *token)
         create_thread(inter, ADD, 0, NULL);
         endofloop = 0;
     }
+    else if (strcmp(token, "-") == 0)
+    {
+        create_thread(inter, SUB, 0, NULL);
+        endofloop = 0;
+    }
     else if (strcmp(token, ".") == 0)
     {
         create_thread(inter, PRINT, 0, NULL);
@@ -149,6 +154,18 @@ void executer(Interpreter *inter)
                 else
                 {
                     add(inter);
+                    th = th->next;
+                }
+                break;
+            case SUB:
+                if (inter->mode == FUNC_DEFINITION)
+                {
+                    /* pass */
+                    th = th->next;
+                }
+                else
+                {
+                    sub(inter);
                     th = th->next;
                 }
                 break;

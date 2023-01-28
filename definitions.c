@@ -54,3 +54,16 @@ int add(Interpreter *inter)
 
     return 0;
 }
+
+int sub(Interpreter *inter)
+{
+    int first_value;
+    int second_value;
+
+    second_value = pop(inter);
+    first_value = pop(inter);
+
+    push(inter, first_value - second_value);
+
+    return 0;
+}

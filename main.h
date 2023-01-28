@@ -11,6 +11,7 @@ typedef enum {
     PUSH,
     POP,
     ADD,
+    SUB,
     PRINT,
     DEFINITION,
     DEFINITION_END,

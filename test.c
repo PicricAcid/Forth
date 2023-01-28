@@ -28,6 +28,7 @@ void print_thread(Interpreter *inter)
                 if (inter->mode == FUNC_DEFINITION)
                 {
                     /* pass */
+                    printf(" PUSH\n");
                     th = th->next;
                 }
                 else
@@ -40,6 +41,7 @@ void print_thread(Interpreter *inter)
                 if (inter->mode == FUNC_DEFINITION)
                 {
                     /* pass */
+                    printf(" POP\n");
                     th = th->next;
                 }
                 else
@@ -52,6 +54,7 @@ void print_thread(Interpreter *inter)
                 if (inter->mode == FUNC_DEFINITION)
                 {
                     /* pass */
+                    printf(" ADD\n");
                     th = th->next;
                 }
                 else
@@ -60,10 +63,24 @@ void print_thread(Interpreter *inter)
                     th = th->next;
                 }
                 break;
+            case SUB:
+                if (inter->mode == FUNC_DEFINITION)
+                {
+                    /* pass */
+                    printf(" SUB\n");
+                    th = th->next;
+                }
+                else
+                {
+                    printf("SUB\n");
+                    th = th->next;
+                }
+                break;
             case PRINT:
                 if (inter->mode == FUNC_DEFINITION)
                 {
                     /* pass */
+                    printf(" PRINT\n");
                     th = th->next;
                 }
                 else
