@@ -195,30 +195,40 @@ void executer(Interpreter *inter)
             case DEFINITION_END:
                 if (inter->mode == CALL_FUNC)
                 {
-                    if (inter->origin)
+                    if (inter->call_stack_head)
                     {
-                        th = inter->origin;
-                        inter->origin = NULL;
+                        th = pop_call_stack(inter);
                     }
                 }
+                else if (inter->mode == FUNC_DEFINITION)
+                {
+                    th = th->next;
+                    inter->mode = NEUTRAL;
+                }
                 else
                 {
                     th = th->next;
                 }
-                inter->mode = NEUTRAL;
                 break;
             case CALL_DEFINITION:
-                inter->mode = CALL_FUNC;
-                Definition *def = search_definition(inter, th->definition_name);
-                if (def)
+                if (inter->mode == FUNC_DEFINITION)
                 {
-                    inter->origin = th->next;
-                    th = def->thread_head;
+                    th = th->next;
                 }
                 else
                 {
-                    inter->mode = NEUTRAL;
-                    th = th->next;
+                    inter->mode = CALL_FUNC;
+                    Definition *def = search_definition(inter, th->definition_name);
+                    if (def)
+                    {
+                        push_call_stack(inter, th->next);
+                        th = def->thread_head;
+                    }
+                    else
+                    {
+                        inter->mode = NEUTRAL;
+                        th = th->next;
+                    }
                 }
                 break;
             case HALT:
@@ -240,7 +250,7 @@ Interpreter *init_interpreter(void)
     inter->thread_head = NULL;
     inter->definition_head = NULL;
     inter->mode = NEUTRAL;
-    inter->origin = NULL;
+    inter->call_stack_head = NULL;
 
     return inter;
 }
@@ -323,4 +333,39 @@ Definition *search_definition(Interpreter *inter, char *name)
     }
 
     return p;
+}
+
+Thread *pop_call_stack(Interpreter *inter)
+{
+    Thread *th;
+    CallStack *current_stack = inter->call_stack_head;
+    CallStack *next_stack = current_stack->next;
+
+    th = current_stack->return_p;
+
+    inter->call_stack_head = next_stack;
+    free(current_stack);
+
+    return th;
+}
+
+void push_call_stack(Interpreter *inter, Thread *p)
+{
+    CallStack *new_stack;
+    new_stack = (CallStack*)malloc(sizeof(CallStack));
+
+    if (inter->call_stack_head)
+    {
+        new_stack->return_p = p;
+        new_stack->next = inter->call_stack_head;
+    }
+    else
+    {
+        new_stack->return_p = p;
+        new_stack->next = NULL;
+    }
+
+    inter->call_stack_head = new_stack;
+
+    return;
 }

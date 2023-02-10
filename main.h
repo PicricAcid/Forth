@@ -6,6 +6,7 @@
 #include <string.h>
 
 #define DEFINITION_NAME_SIZE 24
+#define FUNC_TABLE_MAX 64
 
 typedef enum {
     PUSH,
@@ -46,12 +47,17 @@ typedef struct Definition_mold {
     struct Definition_mold *next;
 } Definition;
 
+typedef struct CallStack_mold {
+    Thread *return_p;
+    struct CallStack_mold *next;
+} CallStack;
+
 typedef struct {
     Stack *stack_head;
     Thread *thread_head;
     Definition *definition_head;
     ExecuteMode mode;
-    Thread *origin;
+    CallStack *call_stack_head;
 } Interpreter;
 
 /* main.c */
@@ -62,6 +68,8 @@ Interpreter *init_interpreter(void);
 Thread *create_thread(Interpreter *inter, RoutineType type, int value, char *name);
 Definition *create_definition(Interpreter *inter, char *name, Thread *th);
 Definition *search_definition(Interpreter *inter, char *name);
+Thread *pop_call_stack(Interpreter *inter);
+void push_call_stack(Interpreter *inter, Thread *p);
 
 
 #endif

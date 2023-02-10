@@ -104,32 +104,45 @@ void print_thread(Interpreter *inter)
             case DEFINITION_END:
                 if (inter->mode == CALL_FUNC)
                 {
-                    if (inter->origin)
+                    if (inter->call_stack_head)
                     {
-                        th = inter->origin;
-                        inter->origin = NULL;
+                        th = pop_call_stack(inter);
+                        printf("RETURN\n");
                     }
+                }
+                else if (inter->mode == FUNC_DEFINITION)
+                {
+                    printf("DEFINITION_END\n");
+                    th = th->next;
+                    inter->mode = NEUTRAL;
                 }
                 else
                 {
                     printf("DEFINITION_END\n");
                     th = th->next;
                 }
-                inter->mode = NEUTRAL;
                 break;
             case CALL_DEFINITION:
-                printf("CALL_DEFINITION\n");
-                inter->mode = CALL_FUNC;
-                Definition *def = search_definition(inter, th->definition_name);
-                if (def)
+                if (inter->mode == FUNC_DEFINITION)
                 {
-                    inter->origin = th->next;
-                    th = def->thread_head;
+                    printf(" CALL_DEFINITION\n");
+                    th = th->next;
                 }
                 else
                 {
-                    inter->mode = NEUTRAL;
-                    th = th->next;
+                    printf("CALL_DEFINITION\n");
+                    inter->mode = CALL_FUNC;
+                    Definition *def = search_definition(inter, th->definition_name);
+                    if (def)
+                    {
+                        push_call_stack(inter, th->next);
+                        th = def->thread_head;
+                    }
+                    else
+                    {
+                        inter->mode = NEUTRAL;
+                        th = th->next;
+                    }
                 }
                 break;
             case HALT:
