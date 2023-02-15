@@ -13,6 +13,8 @@ typedef enum {
     POP,
     ADD,
     SUB,
+    MUL,
+    DIV,
     PRINT,
     DEFINITION,
     DEFINITION_END,
@@ -29,14 +31,34 @@ typedef enum {
     EXECUTE_MODE_COUNT
 } ExecuteMode;
 
+typedef struct {
+    int numerator;
+    int denominator;
+} Ratio;
+
+typedef enum {
+    INT_VALUE,
+    RATIO_VALUE,
+    NULL_VALUE,
+    VALUE_TYPE_COUNT
+} ValueType;
+
+typedef struct {
+    ValueType type;
+    union {
+        int int_value;
+        Ratio ratio_value;
+    } u;
+} Value;
+
 typedef struct Stack_mold {
-    int val;
+    Value val;
     struct Stack_mold *next;
 } Stack;
 
 typedef struct Thread_mold {
     RoutineType type;
-    int value;
+    Value value;
     char definition_name[DEFINITION_NAME_SIZE];
     struct Thread_mold *next;
 } Thread;
@@ -65,7 +87,7 @@ void parser(char *token, FILE *fp);
 int interpret(Interpreter *inter, char *token);
 void executer(Interpreter *inter);
 Interpreter *init_interpreter(void);
-Thread *create_thread(Interpreter *inter, RoutineType type, int value, char *name);
+Thread *create_thread(Interpreter *inter, RoutineType type, Value value, char *name);
 Definition *create_definition(Interpreter *inter, char *name, Thread *th);
 Definition *search_definition(Interpreter *inter, char *name);
 Thread *pop_call_stack(Interpreter *inter);

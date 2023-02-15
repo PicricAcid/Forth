@@ -1,5 +1,17 @@
 #include "test.h"
 
+void print_int(int int_value)
+{
+    printf("%d\n", int_value);
+
+    return;
+}
+
+void print_ratio(Ratio ratio_value)
+{
+    printf("%d/%d\n", ratio_value.numerator, ratio_value.denominator);
+}
+
 void print_stack(Interpreter *inter)
 {
     Stack *stk;
@@ -7,7 +19,14 @@ void print_stack(Interpreter *inter)
     {
         if (stk)
         {
-            printf("%d\n", stk->val);
+            if (stk->val.type == INT_VALUE)
+            {
+                print_int(stk->val.u.int_value);
+            }
+            else if (stk->val.type == RATIO_VALUE)
+            {
+                print_ratio(stk->val.u.ratio_value);
+            }
         }
         else
         {
@@ -76,6 +95,18 @@ void print_thread(Interpreter *inter)
                     th = th->next;
                 }
                 break;
+            case MUL:
+                if (inter->mode == FUNC_DEFINITION)
+                {
+                    /* pass */
+                    printf(" MUL\n");
+                    th = th->next;
+                }
+                else
+                {
+                    printf("MUL\n");
+                    th = th->next;
+                }
             case PRINT:
                 if (inter->mode == FUNC_DEFINITION)
                 {

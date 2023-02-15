@@ -4,10 +4,12 @@
 #include "main.h"
 
 /* definitions.c */
-int pop(Interpreter *inter);
-void push(Interpreter *inter, int val);
-int add(Interpreter *inter);
-int sub(Interpreter *inter);
+Value pop(Interpreter *inter);
+void push(Interpreter *inter, Value val);
+int std_add(Interpreter *inter);
+int std_sub(Interpreter *inter);
+int std_mul(Interpreter *inter);
+int std_div(Interpreter *inter);
 
 /*
 void add_int(Interpreter *inter);

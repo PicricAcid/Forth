@@ -56,27 +56,52 @@ int interpret(Interpreter *inter, char *token)
     int_val = atoi(token);
     if (int_val)
     {
-        create_thread(inter, PUSH, int_val, NULL);
+        Value val;
+        val.type = INT_VALUE;
+        val.u.int_value = int_val;
+        create_thread(inter, PUSH, val, NULL);
         endofloop = 0;
     }
     else if (strcmp(token, "0") == 0)
     {
-        create_thread(inter, PUSH, 0, NULL);
+        Value val;
+        val.type = NULL_VALUE;
+        create_thread(inter, PUSH, val, NULL);
         endofloop = 0;
     }
     else if (strcmp(token, "+") == 0)
     {
-        create_thread(inter, ADD, 0, NULL);
+        Value val;
+        val.type = NULL_VALUE;
+        create_thread(inter, ADD, val, NULL);
         endofloop = 0;
     }
     else if (strcmp(token, "-") == 0)
     {
-        create_thread(inter, SUB, 0, NULL);
+        Value val;
+        val.type = NULL_VALUE;
+        create_thread(inter, SUB, val, NULL);
+        endofloop = 0;
+    }
+    else if (strcmp(token, "*") == 0)
+    {
+        Value val;
+        val.type = NULL_VALUE;
+        create_thread(inter, MUL, val, NULL);
+        endofloop = 0;
+    }
+    else if (strcmp(token, "/") == 0)
+    {
+        Value val;
+        val.type = NULL_VALUE;
+        create_thread(inter, DIV, val, NULL);
         endofloop = 0;
     }
     else if (strcmp(token, ".") == 0)
     {
-        create_thread(inter, PRINT, 0, NULL);
+        Value val;
+        val.type = NULL_VALUE;
+        create_thread(inter, PRINT, val, NULL);
         endofloop = 1;
     }
     else if (strcmp(token, ":") == 0)
@@ -86,7 +111,9 @@ int interpret(Interpreter *inter, char *token)
     }
     else if (strcmp(token, ";") == 0)
     {
-        create_thread(inter, DEFINITION_END, 0, NULL);
+        Value val;
+        val.type = NULL_VALUE;
+        create_thread(inter, DEFINITION_END, val, NULL);
         endofloop = 0;
     }
     else
@@ -95,7 +122,9 @@ int interpret(Interpreter *inter, char *token)
         {
             if (strlen(token) < DEFINITION_NAME_SIZE)
             {
-                Thread *th = create_thread(inter, DEFINITION, 0, NULL);
+                Value val;
+                val.type = NULL_VALUE;
+                Thread *th = create_thread(inter, DEFINITION, val, NULL);
                 create_definition(inter, token, th);
                 inter->mode = NEUTRAL;
             }
@@ -104,7 +133,9 @@ int interpret(Interpreter *inter, char *token)
         {
             if (strlen(token) < DEFINITION_NAME_SIZE)
             {
-                create_thread(inter, CALL_DEFINITION, 0, token);
+                Value val;
+                val.type = NULL_VALUE;
+                create_thread(inter, CALL_DEFINITION, val, token);
             }
         }
         endofloop = 0;
@@ -153,7 +184,7 @@ void executer(Interpreter *inter)
                 }
                 else
                 {
-                    add(inter);
+                    std_add(inter);
                     th = th->next;
                 }
                 break;
@@ -165,7 +196,31 @@ void executer(Interpreter *inter)
                 }
                 else
                 {
-                    sub(inter);
+                    std_sub(inter);
+                    th = th->next;
+                }
+                break;
+            case MUL:
+                if (inter->mode == FUNC_DEFINITION)
+                {
+                    /* pass */
+                    th = th->next;
+                }
+                else
+                {
+                    std_mul(inter);
+                    th = th->next;
+                }
+                break;
+            case DIV:
+                if (inter->mode == FUNC_DEFINITION)
+                {
+                    /* pass */
+                    th = th->next;
+                }
+                else
+                {
+                    std_div(inter);
                     th = th->next;
                 }
                 break;
@@ -255,7 +310,7 @@ Interpreter *init_interpreter(void)
     return inter;
 }
 
-Thread *create_thread(Interpreter *inter, RoutineType type, int value, char *name)
+Thread *create_thread(Interpreter *inter, RoutineType type, Value value, char *name)
 {
     Thread *th;
 
