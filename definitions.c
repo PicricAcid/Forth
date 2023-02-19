@@ -35,13 +35,6 @@ void push(Interpreter *inter, Value val)
     return;
 }
 
-/*
-void print_int_value(Value val)
-{
-
-}
-*/
-
 int std_add(Interpreter *inter)
 {
     Value first_value;

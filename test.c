@@ -107,6 +107,20 @@ void print_thread(Interpreter *inter)
                     printf("MUL\n");
                     th = th->next;
                 }
+                break;
+            case DIV:
+                if (inter->mode == FUNC_DEFINITION)
+                {
+                    /* pass */
+                    printf(" DIV\n");
+                    th = th->next;
+                }
+                else
+                {
+                    printf("DIV\n");
+                    th = th->next;
+                }
+                break;
             case PRINT:
                 if (inter->mode == FUNC_DEFINITION)
                 {

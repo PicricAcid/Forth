@@ -11,12 +11,4 @@ int std_sub(Interpreter *inter);
 int std_mul(Interpreter *inter);
 int std_div(Interpreter *inter);
 
-/*
-void add_int(Interpreter *inter);
-*/
-
-/*
-void print_int_value(Value val);
-*/
-
 #endif
