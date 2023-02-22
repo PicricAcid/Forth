@@ -1,26 +1,35 @@
 #include "main.h"
-#include "definitions.h"
+#include "std_definitions.h"
 #include "test.h"
+#include "mem.h"
 
 #define TOKEN_BUF_SIZE 32
+#define TOKEN_LIST_BUF_SIZE 1024
+
+/* global variables　*/
+void (*thread_list[TH_MAX])(VM *vm);
+
+int get_name;
+int definition_p;
+int endofloop;
 
 int main(int argc, char *argv[])
 {
     char token[TOKEN_BUF_SIZE];
-    Interpreter *inter;
-    Thread *thread_p;
-    int endofloop = 0;
+    VM *vm;
 
     FILE *fp;
 
     fp = fopen(argv[1], "r");
 
-    inter = init_interpreter();
+    init_thread_list();
+
+    vm = init_VM();
 
     while (1)
     {   
         parser(token, fp);
-        endofloop = interpret(inter, token);
+        interpret(vm, token);
 
         if (token[0] == '\0' || endofloop)
         {
@@ -30,8 +39,8 @@ int main(int argc, char *argv[])
 
     fclose(fp);
 
-    executer(inter);
-    /* print_thread(inter); */
+    executer(vm);
+    /* print_thread(vm); */
     return 0;
 }
 
@@ -46,381 +55,136 @@ void parser(char *token, FILE *fp)
     {
         exit(EXIT_FAILURE);
     }
+
+    return;
 }
 
-int interpret(Interpreter *inter, char *token)
+void interpret(VM *vm, char *token)
 {
     int int_val;
-    int endofloop;
 
     int_val = atoi(token);
     if (int_val)
     {
-        Value val;
-        val.type = INT_VALUE;
-        val.u.int_value = int_val;
-        create_thread(inter, PUSH, val, NULL);
-        endofloop = 0;
+        vm->mem[vm->thread++] = PUSH;
+        vm->mem[vm->thread++] = int_val;
     }
     else if (strcmp(token, "0") == 0)
     {
-        Value val;
-        val.type = NULL_VALUE;
-        create_thread(inter, PUSH, val, NULL);
-        endofloop = 0;
+        vm->mem[vm->thread++] = PUSH;
+        vm->mem[vm->thread++] = 0;
     }
     else if (strcmp(token, "+") == 0)
     {
-        Value val;
-        val.type = NULL_VALUE;
-        create_thread(inter, ADD, val, NULL);
-        endofloop = 0;
+        vm->mem[vm->thread++] = ADD;
     }
     else if (strcmp(token, "-") == 0)
     {
-        Value val;
-        val.type = NULL_VALUE;
-        create_thread(inter, SUB, val, NULL);
-        endofloop = 0;
+        vm->mem[vm->thread++] = SUB;
     }
     else if (strcmp(token, "*") == 0)
     {
-        Value val;
-        val.type = NULL_VALUE;
-        create_thread(inter, MUL, val, NULL);
-        endofloop = 0;
+        vm->mem[vm->thread++] = MUL;
     }
     else if (strcmp(token, "/") == 0)
     {
-        Value val;
-        val.type = NULL_VALUE;
-        create_thread(inter, DIV, val, NULL);
-        endofloop = 0;
+        vm->mem[vm->thread++] = DIV;
     }
     else if (strcmp(token, ".") == 0)
     {
-        Value val;
-        val.type = NULL_VALUE;
-        create_thread(inter, PRINT, val, NULL);
-        endofloop = 1;
+        vm->mem[vm->thread++] = PRINT;
     }
     else if (strcmp(token, ":") == 0)
     {
-        inter->mode = GET_NAME;
-        endofloop = 0;
+        get_name = 1;
     }
     else if (strcmp(token, ";") == 0)
     {
-        Value val;
-        val.type = NULL_VALUE;
-        create_thread(inter, DEFINITION_END, val, NULL);
-        endofloop = 0;
+        vm->mem[vm->thread++] = RET;
+    }
+    else if (strcmp(token, "HALT") == 0)
+    {
+        vm->mem[vm->thread++] = HALT;
+        endofloop = 1;
     }
     else
     {
-        if (inter->mode == GET_NAME)
+        if (get_name)
         {
             if (strlen(token) < DEFINITION_NAME_SIZE)
             {
-                Value val;
-                val.type = NULL_VALUE;
-                Thread *th = create_thread(inter, DEFINITION, val, NULL);
-                create_definition(inter, token, th);
-                inter->mode = NEUTRAL;
+                get_name = 0;
+
+                strcpy(vm->definition_list[definition_p].name, token);
+                vm->definition_list[definition_p++].p = vm->thread;
             }
         }
         else
         {
             if (strlen(token) < DEFINITION_NAME_SIZE)
             {
-                Value val;
-                val.type = NULL_VALUE;
-                create_thread(inter, CALL_DEFINITION, val, token);
+                int call_p = search_definition(vm, token);
+                vm->mem[vm->thread++] = CALL;
+                vm->mem[vm->thread++] = call_p;
             }
-        }
-        endofloop = 0;
-    }
-
-    return endofloop;
-}
-
-void executer(Interpreter *inter)
-{
-    Thread *th = inter->thread_head;
-    
-    while(th)
-    {
-        switch (th->type)
-        {
-            case PUSH:
-                if (inter->mode == FUNC_DEFINITION)
-                {
-                    /* pass */
-                    th = th->next;
-                }
-                else
-                {
-                    push(inter, th->value);
-                    th = th->next;
-                }
-                break;
-            case POP:
-                if (inter->mode == FUNC_DEFINITION)
-                {
-                    /* pass */
-                    th = th->next;
-                }
-                else
-                {
-                    pop(inter);
-                    th = th->next;
-                }
-                break;
-            case ADD:
-                if (inter->mode == FUNC_DEFINITION)
-                {
-                    /* pass */
-                    th = th->next;
-                }
-                else
-                {
-                    std_add(inter);
-                    th = th->next;
-                }
-                break;
-            case SUB:
-                if (inter->mode == FUNC_DEFINITION)
-                {
-                    /* pass */
-                    th = th->next;
-                }
-                else
-                {
-                    std_sub(inter);
-                    th = th->next;
-                }
-                break;
-            case MUL:
-                if (inter->mode == FUNC_DEFINITION)
-                {
-                    /* pass */
-                    th = th->next;
-                }
-                else
-                {
-                    std_mul(inter);
-                    th = th->next;
-                }
-                break;
-            case DIV:
-                if (inter->mode == FUNC_DEFINITION)
-                {
-                    /* pass */
-                    th = th->next;
-                }
-                else
-                {
-                    std_div(inter);
-                    th = th->next;
-                }
-                break;
-            case PRINT:
-                if (inter->mode == FUNC_DEFINITION)
-                {
-                    /* pass */
-                    th = th->next;
-                }
-                else
-                {
-                    print_stack(inter);
-                    th = th->next;
-                }
-                break;
-            case DEFINITION:
-                if (inter->mode == CALL_FUNC)
-                {
-                    th = th->next;
-                }
-                else
-                {
-                    inter->mode = FUNC_DEFINITION;
-                    th = th->next;
-                }
-                break;
-            case DEFINITION_END:
-                if (inter->mode == CALL_FUNC)
-                {
-                    if (inter->call_stack_head)
-                    {
-                        th = pop_call_stack(inter);
-                    }
-                }
-                else if (inter->mode == FUNC_DEFINITION)
-                {
-                    th = th->next;
-                    inter->mode = NEUTRAL;
-                }
-                else
-                {
-                    th = th->next;
-                }
-                break;
-            case CALL_DEFINITION:
-                if (inter->mode == FUNC_DEFINITION)
-                {
-                    th = th->next;
-                }
-                else
-                {
-                    inter->mode = CALL_FUNC;
-                    Definition *def = search_definition(inter, th->definition_name);
-                    if (def)
-                    {
-                        push_call_stack(inter, th->next);
-                        th = def->thread_head;
-                    }
-                    else
-                    {
-                        inter->mode = NEUTRAL;
-                        th = th->next;
-                    }
-                }
-                break;
-            case HALT:
-            case ROUTINE_TYPE_COUNT:
-            default:
-                break;
         }
     }
 
     return;
 }
 
-Interpreter *init_interpreter(void)
+void executer(VM *vm)
 {
-    Interpreter *inter;
+    vm->thread = MEM_BLOCK;
+    while(!vm->endofloop)
+    {
+        (*thread_list[vm->mem[vm->thread++]])(vm);
+    }
 
-    inter = (Interpreter*)malloc(sizeof(Interpreter));
-    inter->stack_head = NULL;
-    inter->thread_head = NULL;
-    inter->definition_head = NULL;
-    inter->mode = NEUTRAL;
-    inter->call_stack_head = NULL;
-
-    return inter;
+    return;
 }
 
-Thread *create_thread(Interpreter *inter, RoutineType type, Value value, char *name)
+VM *init_VM(void)
 {
-    Thread *th;
+    VM *vm;
+    vm = (VM*)malloc(sizeof(VM));
+    vm->thread = MEM_BLOCK;
+    vm->call_stack = MEM_BLOCK*2;
+    vm->data_stack = MEM_BLOCK*3;
+    vm->endofloop = 0;
 
-    th = (Thread*)malloc(sizeof(Thread));
-    th->type = type;
-    th->value = value;
-    if (name)
-    {
-        strcpy(th->definition_name, name);
-    }
-    th->next = NULL;
-
-    Thread *p = inter->thread_head;
-
-    if (p)
-    {
-        while(p->next)
-        {
-            p = p->next;
-        }
-        p->next = th;
-    }
-    else
-    {
-        inter->thread_head = th;
-    }
-
-    return th;
+    return vm;
 }
 
-Definition *create_definition(Interpreter *inter, char *name, Thread *th)
+void init_thread_list(void)
 {
-    Definition *def;
+    thread_list[PUSH] = std_push;
+    thread_list[POP] = std_pop;
+    thread_list[ADD] = std_add;
+    thread_list[SUB] = std_sub;
+    thread_list[MUL] = std_mul;
+    thread_list[DIV] = std_div;
+    thread_list[PRINT] = std_print;
+    thread_list[JUMP] = std_jump;
+    thread_list[CALL] = std_call;
+    thread_list[RET] = std_return;
+    thread_list[HALT] = std_halt;
 
-    def = (Definition*)malloc(sizeof(Definition));
-    if (name)
-    {
-        strcpy(def->name, name);
-    }
-    def->thread_head = th;
-    def->next = NULL;
-
-    Definition *p = inter->definition_head;
-
-    if(p)
-    {
-        while(p->next)
-        {
-            p = p->next;
-        }
-        p->next = def;
-    }
-    else
-    {
-        inter->definition_head = def;
-    }
-
-    return def;
+    return;
 }
 
-Definition *search_definition(Interpreter *inter, char *name)
+int search_definition(VM *vm, char *name)
 {
-    Definition *p = inter->definition_head;
+    int result = 0;
 
-    while (p)
+    for (int p = 0; p < definition_p; p++)
     {
-        if (strcmp(p->name, name) == 0)
+        if (strcmp(vm->definition_list[p].name, name) == 0)
         {
+            result = vm->definition_list[p].p;
             break;
         }
-        else
-        {
-            p = p->next;
-        }
     }
 
-    return p;
-}
-
-Thread *pop_call_stack(Interpreter *inter)
-{
-    Thread *th;
-    CallStack *current_stack = inter->call_stack_head;
-    CallStack *next_stack = current_stack->next;
-
-    th = current_stack->return_p;
-
-    inter->call_stack_head = next_stack;
-    free(current_stack);
-
-    return th;
-}
-
-void push_call_stack(Interpreter *inter, Thread *p)
-{
-    CallStack *new_stack;
-    new_stack = (CallStack*)malloc(sizeof(CallStack));
-
-    if (inter->call_stack_head)
-    {
-        new_stack->return_p = p;
-        new_stack->next = inter->call_stack_head;
-    }
-    else
-    {
-        new_stack->return_p = p;
-        new_stack->next = NULL;
-    }
-
-    inter->call_stack_head = new_stack;
-
-    return;
+    return result;
 }

@@ -5,10 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DEFINITION_NAME_SIZE 24
-#define FUNC_TABLE_MAX 64
+#include "mem.h"
 
-typedef enum {
+#define DEFINITION_NAME_SIZE 32
+#define DEFINITION_MAX 64
+#define TH_MAX 64
+
+enum {
     PUSH,
     POP,
     ADD,
@@ -16,82 +19,33 @@ typedef enum {
     MUL,
     DIV,
     PRINT,
-    DEFINITION,
-    DEFINITION_END,
-    CALL_DEFINITION,
+    JUMP,
+    CALL,
+    RET,
     HALT,
-    ROUTINE_TYPE_COUNT
-} RoutineType;
-
-typedef enum {
-    NEUTRAL,
-    GET_NAME,
-    FUNC_DEFINITION,
-    CALL_FUNC,
-    EXECUTE_MODE_COUNT
-} ExecuteMode;
+    THREAD_TYPE_COUNT
+};
 
 typedef struct {
-    int numerator;
-    int denominator;
-} Ratio;
-
-typedef enum {
-    INT_VALUE,
-    RATIO_VALUE,
-    NULL_VALUE,
-    VALUE_TYPE_COUNT
-} ValueType;
-
-typedef struct {
-    ValueType type;
-    union {
-        int int_value;
-        Ratio ratio_value;
-    } u;
-} Value;
-
-typedef struct Stack_mold {
-    Value val;
-    struct Stack_mold *next;
-} Stack;
-
-typedef struct Thread_mold {
-    RoutineType type;
-    Value value;
-    char definition_name[DEFINITION_NAME_SIZE];
-    struct Thread_mold *next;
-} Thread;
-
-typedef struct Definition_mold {
     char name[DEFINITION_NAME_SIZE];
-    Thread *thread_head;
-    struct Definition_mold *next;
-} Definition;
-
-typedef struct CallStack_mold {
-    Thread *return_p;
-    struct CallStack_mold *next;
-} CallStack;
+    int p;
+} WordDefinition;
 
 typedef struct {
-    Stack *stack_head;
-    Thread *thread_head;
-    Definition *definition_head;
-    ExecuteMode mode;
-    CallStack *call_stack_head;
-} Interpreter;
+    int mem[MEM_MAX];
+    WordDefinition definition_list[DEFINITION_MAX];
+    int thread;
+    int call_stack;
+    int data_stack;
+    int endofloop;
+} VM;
 
 /* main.c */
 void parser(char *token, FILE *fp);
-int interpret(Interpreter *inter, char *token);
-void executer(Interpreter *inter);
-Interpreter *init_interpreter(void);
-Thread *create_thread(Interpreter *inter, RoutineType type, Value value, char *name);
-Definition *create_definition(Interpreter *inter, char *name, Thread *th);
-Definition *search_definition(Interpreter *inter, char *name);
-Thread *pop_call_stack(Interpreter *inter);
-void push_call_stack(Interpreter *inter, Thread *p);
-
+void interpret(VM *vm, char *token);
+void executer(VM *vm);
+VM *init_VM(void);
+void init_thread_list(void);
+int search_definition(VM *vm, char *name);
 
 #endif
