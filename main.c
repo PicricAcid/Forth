@@ -44,6 +44,9 @@ void parser(char *token, FILE *fp)
 void interpreter(VM *vm, FILE *fp)
 {
     int get_name = 0;
+    int buf_p = 0;
+    int buf[64];
+
     while(1)
     {
         char token[TOKEN_BUF_SIZE];
@@ -97,7 +100,33 @@ void interpreter(VM *vm, FILE *fp)
         if (strcmp(token, "-") == 0) { vm->mem[vm->thread++] = SUB; continue;}
         if (strcmp(token, "*") == 0) { vm->mem[vm->thread++] = MUL; continue;}
         if (strcmp(token, "/") == 0) { vm->mem[vm->thread++] = DIV; continue;}
+        if (strcmp(token, "=") == 0) { vm->mem[vm->thread++] = EQ; continue;}
+        if (strcmp(token, "/=") == 0) { vm->mem[vm->thread++] = NEQ; continue;}
+        if (strcmp(token, "<") == 0) { vm->mem[vm->thread++] = GT; continue;}
+        if (strcmp(token, ">") == 0) { vm->mem[vm->thread++] = LT; continue;}
+        if (strcmp(token, "<=") == 0) { vm->mem[vm->thread++] = GEQ; continue;}
+        if (strcmp(token, ">=") == 0) { vm->mem[vm->thread++] = LEQ; continue;}
         if (strcmp(token, ".") == 0) { vm->mem[vm->thread++] = PRINT; continue;}
+        if (strcmp(token, "IF") == 0)
+        {
+            vm->mem[vm->thread++] = IF;
+            buf[++buf_p] = vm->thread++;
+            continue;
+        }
+        if (strcmp(token, "ELSE") == 0)
+        {
+            int tmp = buf[buf_p--];
+            vm->mem[vm->thread++] = JUMP;
+            buf[buf_p] = vm->thread++;
+            vm->mem[tmp] = vm->thread;
+            continue;
+        }
+        if (strcmp(token, "THEN") == 0)
+        {
+            int tmp = buf[buf_p--];
+            vm->mem[tmp] = vm->thread;
+            continue;
+        }
         if (strcmp(token, "HALT") == 0) { vm->mem[vm->thread++] = HALT; break;}
     }
     return;
@@ -137,10 +166,17 @@ void init_thread_list(void)
     thread_list[SUB] = std_sub;
     thread_list[MUL] = std_mul;
     thread_list[DIV] = std_div;
+    thread_list[EQ] = std_eq;
+    thread_list[NEQ] = std_neq;
+    thread_list[GT] = std_gt;
+    thread_list[LT] = std_lt;
+    thread_list[GEQ] = std_geq;
+    thread_list[LEQ] = std_leq;
     thread_list[PRINT] = std_print;
     thread_list[JUMP] = std_jump;
     thread_list[CALL] = std_call;
     thread_list[RET] = std_return;
+    thread_list[IF] = std_if;
     thread_list[HALT] = std_halt;
 
     return;

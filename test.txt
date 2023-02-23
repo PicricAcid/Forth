@@ -1,3 +1,9 @@
-: TEST 1 2 + . ;
-: TEST2 TEST 3 + . ;
-TEST2 HALT
+: TEST 100 . ;
+: TEST2 200 . ;
+1 2 > 
+IF 
+	TEST 
+ELSE 
+	TEST2 
+THEN
+HALT

@@ -18,10 +18,17 @@ enum {
     SUB,
     MUL,
     DIV,
+    EQ,
+    NEQ,
+    GT,
+    LT,
+    GEQ,
+    LEQ,
     PRINT,
     JUMP,
     CALL,
     RET,
+    IF,
     HALT,
     THREAD_TYPE_COUNT
 };

@@ -58,6 +58,72 @@ void std_div(VM *vm)
     return;
 }
 
+void std_eq(VM *vm)
+{
+    int first_value = vm->mem[vm->data_stack - 1];
+    int second_value = vm->mem[vm->data_stack];
+
+    vm->mem[vm->data_stack - 1] = first_value == second_value;
+    vm->data_stack--;
+
+    return;
+}
+
+void std_neq(VM *vm)
+{
+    int first_value = vm->mem[vm->data_stack - 1];
+    int second_value = vm->mem[vm->data_stack];
+
+    vm->mem[vm->data_stack - 1] = first_value != second_value;
+    vm->data_stack--;
+
+    return;
+}
+
+void std_gt(VM *vm)
+{
+    int first_value = vm->mem[vm->data_stack - 1];
+    int second_value = vm->mem[vm->data_stack];
+
+    vm->mem[vm->data_stack - 1] = first_value < second_value;
+    vm->data_stack--;
+
+    return;
+}
+
+void std_lt(VM *vm)
+{
+    int first_value = vm->mem[vm->data_stack - 1];
+    int second_value = vm->mem[vm->data_stack];
+
+    vm->mem[vm->data_stack - 1] = first_value > second_value;
+    vm->data_stack--;
+
+    return;
+}
+
+void std_geq(VM *vm)
+{
+    int first_value = vm->mem[vm->data_stack - 1];
+    int second_value = vm->mem[vm->data_stack];
+
+    vm->mem[vm->data_stack - 1] = first_value <= second_value;
+    vm->data_stack--;
+
+    return;
+}
+
+void std_leq(VM *vm)
+{
+    int first_value = vm->mem[vm->data_stack - 1];
+    int second_value = vm->mem[vm->data_stack];
+
+    vm->mem[vm->data_stack - 1] = first_value >= second_value;
+    vm->data_stack--;
+
+    return;
+}
+
 void std_print(VM *vm)
 {
     printf("%d\n", vm->mem[vm->data_stack]);
@@ -67,7 +133,7 @@ void std_print(VM *vm)
 
 void std_jump(VM *vm)
 {
-    vm->thread = vm->mem[vm->thread + 1];
+    vm->thread = vm->mem[vm->thread];
 
     return;
 }
@@ -86,6 +152,21 @@ void std_return(VM *vm)
     {
         vm->thread = vm->mem[vm->call_stack--];
     }
+
+    return;
+}
+
+void std_if(VM *vm)
+{
+    if (vm->mem[vm->data_stack] == 0)
+    {
+        vm->thread = vm->mem[vm->thread];
+    }
+    else
+    {
+        vm->thread++;
+    }
+    vm->data_stack--;
 
     return;
 }
