@@ -26,6 +26,12 @@ enum {
     THREAD_TYPE_COUNT
 };
 
+typedef enum {
+    INTERPRETATION,
+    COMPILATION,
+    EXEC_MODE_COUNT
+} ExecMode;
+
 typedef struct {
     char name[DEFINITION_NAME_SIZE];
     int p;
@@ -34,18 +40,23 @@ typedef struct {
 typedef struct {
     int mem[MEM_MAX];
     WordDefinition definition_list[DEFINITION_MAX];
+    ExecMode mode;
     int thread;
     int call_stack;
     int data_stack;
+    int word_definitions;
     int endofloop;
 } VM;
 
 /* main.c */
 void parser(char *token, FILE *fp);
-void interpret(VM *vm, char *token);
+void interpreter(VM *vm, FILE *fp);
 void executer(VM *vm);
+
 VM *init_VM(void);
 void init_thread_list(void);
-int search_definition(VM *vm, char *name);
 
+void begin_def(VM *vm, char *token);
+void end_def(VM *vm);
+int search_definition(VM *vm, char *name);
 #endif

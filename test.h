@@ -4,6 +4,7 @@
 #include "main.h"
 
 /* test.c */
-void print_thread(VM *vm);
+void debug_executer(VM *vm);
+int print_thread(VM *vm);
 
 #endif

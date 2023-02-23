@@ -1,1 +1,3 @@
-: TEST 1 2 + . ; TEST HALT
+: TEST 1 2 + . ;
+: TEST2 TEST 3 + . ;
+TEST2 HALT
