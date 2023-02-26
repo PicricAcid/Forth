@@ -131,6 +131,14 @@ void std_print(VM *vm)
     return;
 }
 
+void std_dup(VM *vm)
+{
+    vm->mem[vm->thread + 1] = vm->mem[vm->thread];
+    vm->thread++;
+
+    return;
+}
+
 void std_jump(VM *vm)
 {
     vm->thread = vm->mem[vm->thread];

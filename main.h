@@ -25,6 +25,7 @@ enum {
     GEQ,
     LEQ,
     PRINT,
+    DUP,
     JUMP,
     CALL,
     RET,

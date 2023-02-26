@@ -107,6 +107,7 @@ void interpreter(VM *vm, FILE *fp)
         if (strcmp(token, "<=") == 0) { vm->mem[vm->thread++] = GEQ; continue;}
         if (strcmp(token, ">=") == 0) { vm->mem[vm->thread++] = LEQ; continue;}
         if (strcmp(token, ".") == 0) { vm->mem[vm->thread++] = PRINT; continue;}
+        if (strcmp(token, "DUP") == 0) { vm->mem[vm->thread++] = DUP; continue;}
         if (strcmp(token, "IF") == 0)
         {
             vm->mem[vm->thread++] = IF;
@@ -173,6 +174,7 @@ void init_thread_list(void)
     thread_list[GEQ] = std_geq;
     thread_list[LEQ] = std_leq;
     thread_list[PRINT] = std_print;
+    thread_list[DUP] = std_dup;
     thread_list[JUMP] = std_jump;
     thread_list[CALL] = std_call;
     thread_list[RET] = std_return;

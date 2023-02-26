@@ -17,6 +17,7 @@ void std_lt(VM *vm);
 void std_geq(VM *vm);
 void std_leq(VM *vm);
 void std_print(VM *vm);
+void std_dup(VM *vm);
 void std_jump(VM *vm);
 void std_call(VM *vm);
 void std_return(VM *vm);
